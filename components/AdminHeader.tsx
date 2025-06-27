@@ -15,68 +15,54 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm sticky-top">
+    <header className="navbar navbar-dark bg-danger shadow-sm py-2">
       <div className="container-fluid">
-        <Link href="/admin" className="navbar-brand">
-          🍕 Admin Panel
-        </Link>
-        
-        {/* Botón Toggler para móvil. Apunta al ID 'navbarAdminContent' */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarAdminContent"
-          aria-controls="navbarAdminContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+        {/* Usamos Flexbox de Bootstrap para el control total del layout */}
+        <div className="d-flex justify-content-between align-items-center w-100">
 
-        {/* Este es el contenedor que se colapsa. Su ID coincide con 'data-bs-target' */}
-        <div className="collapse navbar-collapse" id="navbarAdminContent">
-          {/* me-auto empuja esta lista a la izquierda */}
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
+          {/* ---- GRUPO IZQUIERDO: Título y Enlaces ---- */}
+          <div className="d-flex align-items-center">
+            <Link href="/admin" className="navbar-brand me-4">
+              🍕 Admin Panel
+            </Link>
+            
+            {/* Contenedor de enlaces que siempre estarán visibles */}
+            <div className="d-flex gap-3">
               <Link
                 href="/admin"
-                className={`nav-link ${pathname === "/admin" ? "active" : ""}`}
+                className={`nav-link text-white ${pathname === "/admin" ? "fw-bold" : ""}`}
               >
                 Estadísticas
               </Link>
-            </li>
-            <li className="nav-item">
               <Link
                 href="/admin/menu"
-                className={`nav-link ${pathname.startsWith("/admin/menu") ? "active" : ""}`}
+                className={`nav-link text-white ${pathname.startsWith("/admin/menu") ? "fw-bold" : ""}`}
               >
                 Menú
               </Link>
-            </li>
-            <li className="nav-item">
               <Link
-                href="/admin/reservations"
-                className="nav-link disabled"
-                aria-disabled="true"
+                href="#"
+                className="nav-link text-white-50"
+                style={{ pointerEvents: 'none' }} // Deshabilitamos el clic
               >
                 Reservas
               </Link>
-            </li>
-          </ul>
+            </div>
+          </div>
 
-          {/* Menú desplegable del usuario a la derecha */}
-          <ul className="navbar-nav">
-             {session?.user && (
-              <li className="nav-item dropdown">
+          {/* ---- GRUPO DERECHO: Menú de Usuario ---- */}
+          <div>
+            {session?.user && (
+              <div className="dropdown">
+                {/* Este botón 'dropdown' NECESITA el JS de Bootstrap para funcionar */}
                 <a
-                  className="nav-link dropdown-toggle text-white"
+                  className="nav-link dropdown-toggle text-white d-flex align-items-center"
                   href="#"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  <PersonCircle className="me-1" />
+                  <PersonCircle className="me-2" />
                   {session.user.name || "Admin"}
                 </a>
                 <ul className="dropdown-menu dropdown-menu-end">
@@ -87,9 +73,10 @@ export function AdminHeader() {
                     </button>
                   </li>
                 </ul>
-              </li>
+              </div>
             )}
-          </ul>
+          </div>
+
         </div>
       </div>
     </header>

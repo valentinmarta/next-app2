@@ -3,9 +3,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import "bootstrap/dist/css/bootstrap.min.css"; // El CSS está bien aquí
+import "bootstrap/dist/css/bootstrap.min.css";
 import Providers from "@/components/Providers";
-import Script from "next/script"; // <-- IMPORTANTE: Importamos el componente Script
+import Script from "next/script"; // Importamos el componente Script
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,12 +26,13 @@ export default function RootLayout({
           {children}
         </Providers>
         
-        {/* AÑADIMOS EL SCRIPT DE BOOTSTRAP AQUÍ, AL FINAL DEL BODY */}
-        {/* Esto asegura que toda la página se cargue antes de que el script se ejecute */}
+        {/* Colocamos el script de Bootstrap aquí, justo antes de cerrar el body. */}
+        {/* Esto asegura que se carga después de que la página es interactiva. */}
         <Script 
           src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
           crossOrigin="anonymous"
+          strategy="lazyOnload" // Estrategia para cargar cuando el navegador esté libre
         />
       </body>
     </html>

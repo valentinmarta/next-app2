@@ -7,8 +7,8 @@ const prisma = new PrismaClient();
 
 async function main() {
   // --- Define aquí los datos de tu administrador ---
-  const adminEmail = 'admin@pizzeria.com';
-  const adminPassword = 'admin123'; // Esta es la contraseña que usarás para iniciar sesión
+  const adminEmail = 'admin@ventasJuegos.com';
+  const adminPassword = 'momo'; // Esta es la contraseña que usarás para iniciar sesión
   // ------------------------------------------------
 
   console.log(`Verificando si el usuario ${adminEmail} ya existe...`);
@@ -32,7 +32,7 @@ async function main() {
   const adminUser = await prisma.user.create({
     data: {
       email: adminEmail,
-      name: 'Admin Pizzeria',
+      name: 'Admin',
       password: hashedPassword, // ¡Guardamos la contraseña YA ENCRIPTADA!
       role: 'ADMIN', // ¡Muy importante! Asignamos el rol de ADMIN
     },

@@ -1,128 +1,114 @@
 "use client"
 
 import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { GamepadIcon, Eye, EyeOff } from "lucide-react"
+import { useApp } from "@/lib/context"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const { login } = useApp()
   const router = useRouter()
 
-// EL NUEVO CÓDIGO PARA REEMPLAZAR
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
-    // Usamos la función signIn de NextAuth
-    const result = await signIn("credentials", {
-      // 'credentials' le dice a NextAuth que use el proveedor de Email/Contraseña que configuramos.
-      redirect: false, // ¡Muy importante! Evita que la página se recargue automáticamente.
-      email: email,       // El email del estado del formulario.
-      password: password, // La contraseña del estado del formulario.
-    });
+    // Simulate loading delay
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // signIn nos devuelve un objeto 'result' que podemos inspeccionar.
-    if (result?.ok) {
-      // Si el login fue exitoso (result.ok es true), redirigimos al admin.
-      router.push("/admin");
+    if (login(username, password)) {
+      router.push("/admin")
     } else {
-      // Si hubo un error, NextAuth nos lo da en result.error.
-      // Mostramos un mensaje genérico para más seguridad.
-      setError("Email o contraseña incorrectos.");
+      setError("Credenciales incorrectas. Intenta de nuevo.")
     }
 
-    setLoading(false);
-  };
+    setIsLoading(false)
+  }
 
   return (
-    <div className="min-vh-100 bg-light d-flex align-items-center">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-6 col-lg-4">
-            <div className="card shadow">
-              <div className="card-body p-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-danger">🍕 Admin Login</h2>
-                  <p className="text-muted">Acceso para administradores</p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <GamepadIcon className="h-12 w-12 text-blue-600" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Panel de Administrador</CardTitle>
+          <CardDescription>Ingresa tus credenciales para acceder al panel de control</CardDescription>
+        </CardHeader>
 
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-3">
-                    <label htmlFor="email" className="form-label">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="form-control"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Usuario</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Ingresa tu usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="password" className="form-label">
-                      Contraseña
-                    </label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      id="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="alert alert-danger" role="alert">
-                      {error}
-                    </div>
-                  )}
-
-                  <button type="submit" className="btn btn-danger w-100" disabled={loading}>
-                    {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
-                  </button>
-                </form>
-          
-                <div className="text-center my-3">
-                    <p>O</p>
-                    <button 
-                        onClick={() => signIn('google', { callbackUrl: '/admin' })} 
-                        className="btn btn-outline-dark w-100"
-                    >
-                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20" className="me-2"/>
-                        Iniciar sesión con Google
-                    </button>
-                </div>
-                <div className="text-center mt-3">
-                  <Link href="/" className="text-decoration-none">
-                    ← Volver al inicio
-                  </Link>
-                </div>
-
-                <div className="mt-4 p-3 bg-light rounded">
-                  <small className="text-muted">
-                    <strong>Demo:</strong>
-                    <br />
-                    Email: admin@pizzeria.com
-                    <br />
-                    Contraseña: admin123
-                  </small>
-                </div>
-                
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
             </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            </Button>
+          </form>
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 text-center mb-2">
+              <strong>Credenciales de prueba:</strong>
+            </p>
+            <p className="text-sm text-gray-600 text-center">
+              Usuario: <code className="bg-white px-1 rounded">admin</code>
+              <br />
+              Contraseña: <code className="bg-white px-1 rounded">admin123</code>
+            </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

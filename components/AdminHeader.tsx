@@ -40,11 +40,7 @@ export function AdminHeader() {
               >
                 Menú
               </Link>
-              <Link
-                href="#"
-                className="nav-link text-white-50"
-                style={{ pointerEvents: 'none' }} // Deshabilitamos el clic
-              >
+              <Link href="/admin/reservations" className={`nav-link ${pathname.startsWith("/admin/reservations") ? "active" : ""}`}>
                 Reservas
               </Link>
             </div>

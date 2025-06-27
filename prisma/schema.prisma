@@ -30,6 +30,7 @@ model Product {
   stock       Int      @default(0) // Dejamos listo el campo de stock
   categoryId  String   @db.ObjectId
   category    Category @relation(fields: [categoryId], references: [id])
+  OrderItem OrderItem[]
 }
 
 // modelos para el auth
@@ -80,3 +81,38 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// modelos para la orden
+
+
+model Order {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime    @default(now())
+  total           Float
+  
+  // Nuevos campos para el cliente
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  deliveryType    String      // "pickup" o "delivery"
+  address         String?
+  comments        String?
+  status          String      @default("PENDING") // PENDING, PREPARING, COMPLETED, etc.
+
+  // Relación con los items del pedido
+  items           OrderItem[]
+}
+
+// NUEVO MODELO para guardar cada línea del pedido (ej: 2x Pizza Siciliana)
+
+model OrderItem {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  
+  orderId   String  @db.ObjectId
+  order     Order   @relation(fields: [orderId], references: [id])
+  
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+}
+

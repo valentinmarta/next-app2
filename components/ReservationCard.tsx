@@ -1,117 +1,101 @@
-"use client"
+// components/ReservationCard.tsx
+"use client";
 
-import { useState } from "react"
-import { mockReservationService } from "@/lib/mock-services"
-import { type Reservation, ReservationStatus } from "@/types"
+import { useState } from "react";
+// 1. Importamos useRouter para poder refrescar la página
+import { useRouter } from "next/navigation";
+import { updateOrderStatus } from "@/app/actions/reservations";
+import type { Order, OrderItem, Product } from "@prisma/client";
 
+type OrderWithDetails = Order & {
+  items: (OrderItem & {
+    product: Product;
+  })[];
+};
+
+// 2. Ya no necesitamos la prop onUpdate
 interface ReservationCardProps {
-  reservation: Reservation
-  onUpdate?: () => void
+  reservation: OrderWithDetails;
 }
 
-export function ReservationCard({ reservation, onUpdate }: ReservationCardProps) {
-  const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+export function ReservationCard({ reservation }: ReservationCardProps) {
+  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  // 3. Inicializamos el router
+  const router = useRouter();
 
-  const handleStatusUpdate = async (newStatus: ReservationStatus) => {
-    setLoading(true)
+  const DELIVERY_FEE = 5.00;
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    setLoading(true);
     try {
-      await mockReservationService.updateReservationStatus(reservation.id, newStatus)
-      onUpdate?.()
+      const result = await updateOrderStatus(reservation.id, newStatus);
+      if (result.success) {
+        // 4. Si la actualización fue exitosa, refrescamos los datos de la ruta
+        router.refresh();
+      } else {
+        alert(result.error || "No se pudo actualizar el estado.");
+      }
     } catch (error) {
-      console.error("Error updating status:", error)
+      console.error("Error updating status:", error);
+      alert("Ocurrió un error inesperado.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  // --- El resto de tus funciones de ayuda y el JSX siguen exactamente igual ---
 
   const getStatusBadge = (status: string) => {
-    const badges = {
+    const badges: { [key: string]: string } = {
       PENDING: "bg-warning text-dark",
       PREPARING: "bg-info",
-      READY_FOR_PICKUP: "bg-success",
-      OUT_FOR_DELIVERY: "bg-primary",
       COMPLETED: "bg-success",
       CANCELLED: "bg-danger",
-    }
-    return badges[status as keyof typeof badges] || "bg-secondary"
-  }
+      READY_FOR_PICKUP: "bg-success",
+      OUT_FOR_DELIVERY: "bg-primary",
+    };
+    return badges[status] || "bg-secondary";
+  };
 
   const getStatusText = (status: string) => {
-    const texts = {
+    const texts: { [key: string]: string } = {
       PENDING: "Pendiente",
       PREPARING: "Preparando",
-      READY_FOR_PICKUP: "Listo para retirar",
-      OUT_FOR_DELIVERY: "En camino",
       COMPLETED: "Completado",
       CANCELLED: "Cancelado",
-    }
-    return texts[status as keyof typeof texts] || status
-  }
+      READY_FOR_PICKUP: "Listo para Retirar",
+      OUT_FOR_DELIVERY: "En Camino",
+    };
+    return texts[status] || status;
+  };
 
   const getAvailableActions = () => {
-    const actions = []
-
+    const actions = [];
     switch (reservation.status) {
-      case ReservationStatus.PENDING:
-        actions.push({
-          status: ReservationStatus.PREPARING,
-          label: "Comenzar preparación",
-          class: "btn-info",
-          icon: "🍳",
-        })
-        actions.push({
-          status: ReservationStatus.CANCELLED,
-          label: "Cancelar pedido",
-          class: "btn-danger",
-          icon: "❌",
-        })
-        break
-
-      case ReservationStatus.PREPARING:
+      case "PENDING":
+        actions.push({ status: "PREPARING", label: "Comenzar preparación", class: "btn-info", icon: "🍳" });
+        actions.push({ status: "CANCELLED", label: "Cancelar pedido", class: "btn-danger", icon: "❌" });
+        break;
+      case "PREPARING":
         if (reservation.deliveryType === "pickup") {
-          actions.push({
-            status: ReservationStatus.READY_FOR_PICKUP,
-            label: "Listo para retirar",
-            class: "btn-success",
-            icon: "✅",
-          })
+          actions.push({ status: "READY_FOR_PICKUP", label: "Listo para retirar", class: "btn-success", icon: "✅" });
         } else {
-          actions.push({
-            status: ReservationStatus.OUT_FOR_DELIVERY,
-            label: "Enviar a domicilio",
-            class: "btn-primary",
-            icon: "🚚",
-          })
+          actions.push({ status: "OUT_FOR_DELIVERY", label: "Enviar a domicilio", class: "btn-primary", icon: "🚚" });
         }
-        break
-
-      case ReservationStatus.READY_FOR_PICKUP:
-        actions.push({
-          status: ReservationStatus.COMPLETED,
-          label: "Marcar como entregado",
-          class: "btn-success",
-          icon: "✅",
-        })
-        break
-
-      case ReservationStatus.OUT_FOR_DELIVERY:
-        actions.push({
-          status: ReservationStatus.COMPLETED,
-          label: "Marcar como entregado",
-          class: "btn-success",
-          icon: "✅",
-        })
-        break
+        break;
+      case "READY_FOR_PICKUP":
+      case "OUT_FOR_DELIVERY":
+        actions.push({ status: "COMPLETED", label: "Marcar como entregado", class: "btn-success", icon: "✅" });
+        break;
     }
+    return actions;
+  };
 
-    return actions
-  }
-
-  const actions = getAvailableActions()
+  const actions = getAvailableActions();
 
   return (
-    <div className="card shadow-sm">
+    <div className="card shadow-sm mb-3">
       <div className="card-header">
         <div className="d-flex justify-content-between align-items-center">
           <div>
@@ -122,7 +106,7 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
               </span>
             </h6>
             <small className="text-muted">
-              Pedido #{reservation.id} - {new Date(reservation.createdAt).toLocaleString("es-ES")}
+              Pedido #{reservation.id.slice(-6)} - {new Date(reservation.createdAt).toLocaleString("es-ES")}
             </small>
           </div>
           <div className="d-flex align-items-center gap-2">
@@ -140,12 +124,8 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
             {/* Customer Info */}
             <div className="col-md-6 mb-3">
               <h6 className="text-danger">Información del Cliente</h6>
-              <p className="mb-1">
-                <strong>Email:</strong> {reservation.customerEmail}
-              </p>
-              <p className="mb-1">
-                <strong>Teléfono:</strong> {reservation.customerPhone}
-              </p>
+              <p className="mb-1"><strong>Email:</strong> {reservation.customerEmail}</p>
+              <p className="mb-1"><strong>Teléfono:</strong> {reservation.customerPhone}</p>
               <p className="mb-1">
                 <strong>Tipo de entrega:</strong>
                 <span className={`badge ms-1 ${reservation.deliveryType === "delivery" ? "bg-primary" : "bg-info"}`}>
@@ -153,27 +133,23 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
                 </span>
               </p>
               {reservation.address && (
-                <p className="mb-1">
-                  <strong>Dirección:</strong> {reservation.address}
-                </p>
+                <p className="mb-1"><strong>Dirección:</strong> {reservation.address}</p>
               )}
             </div>
 
             {/* Order Details */}
             <div className="col-md-6 mb-3">
               <h6 className="text-danger">Detalles del Pedido</h6>
-              {reservation.pizzas.map((item, index) => (
-                <div key={index} className="d-flex justify-content-between mb-1">
-                  <span>
-                    {item.quantity}x {item.pizza.name}
-                  </span>
-                  <span>${(item.pizza.price * item.quantity).toFixed(2)}</span>
+              {reservation.items.map((item) => (
+                <div key={item.id} className="d-flex justify-content-between mb-1">
+                  <span>{item.quantity}x {item.product.name}</span>
+                  <span>${(item.product.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
               {reservation.deliveryType === "delivery" && (
                 <div className="d-flex justify-content-between mb-1">
                   <span>Costo de envío</span>
-                  <span>$5.00</span>
+                  <span>${DELIVERY_FEE.toFixed(2)}</span>
                 </div>
               )}
               <hr className="my-2" />
@@ -184,7 +160,6 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
             </div>
           </div>
 
-          {/* Comments */}
           {reservation.comments && (
             <div className="mb-3">
               <h6 className="text-danger">Comentarios</h6>
@@ -192,7 +167,6 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
             </div>
           )}
 
-          {/* Actions */}
           {actions.length > 0 && (
             <div className="border-top pt-3">
               <h6 className="text-danger mb-3">Acciones</h6>
@@ -214,5 +188,5 @@ export function ReservationCard({ reservation, onUpdate }: ReservationCardProps)
         </div>
       )}
     </div>
-  )
+  );
 }

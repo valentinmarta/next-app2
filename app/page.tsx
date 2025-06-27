@@ -113,7 +113,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="relative">
-              <img src="/placeholder.svg?height=400&width=600" alt="Sobre nosotros" className="rounded-lg shadow-lg" />
+              <img src="https://elqueretano.info/wp-content/uploads/2020/01/Arterias-juegos-de-mesa-2.jpg" alt="Sobre nosotros" className="rounded-lg shadow-lg" />
             </div>
           </div>
         </div>

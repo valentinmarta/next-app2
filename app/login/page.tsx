@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { mockAuthService } from "@/config/auth"
+import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -13,25 +13,32 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const router = useRouter()
 
+// EL NUEVO CÓDIGO PARA REEMPLAZAR
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    try {
-      const result = await mockAuthService.signIn(email, password)
+    // Usamos la función signIn de NextAuth
+    const result = await signIn("credentials", {
+      // 'credentials' le dice a NextAuth que use el proveedor de Email/Contraseña que configuramos.
+      redirect: false, // ¡Muy importante! Evita que la página se recargue automáticamente.
+      email: email,       // El email del estado del formulario.
+      password: password, // La contraseña del estado del formulario.
+    });
 
-      if (result.success) {
-        router.push("/admin")
-      } else {
-        setError(result.error || "Error al iniciar sesión")
-      }
-    } catch (error) {
-      setError("Error al iniciar sesión")
-    } finally {
-      setLoading(false)
+    // signIn nos devuelve un objeto 'result' que podemos inspeccionar.
+    if (result?.ok) {
+      // Si el login fue exitoso (result.ok es true), redirigimos al admin.
+      router.push("/admin");
+    } else {
+      // Si hubo un error, NextAuth nos lo da en result.error.
+      // Mostramos un mensaje genérico para más seguridad.
+      setError("Email o contraseña incorrectos.");
     }
-  }
+
+    setLoading(false);
+  };
 
   return (
     <div className="min-vh-100 bg-light d-flex align-items-center">
@@ -84,7 +91,17 @@ export default function LoginPage() {
                     {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
                   </button>
                 </form>
-
+          
+                <div className="text-center my-3">
+                    <p>O</p>
+                    <button 
+                        onClick={() => signIn('google', { callbackUrl: '/admin' })} 
+                        className="btn btn-outline-dark w-100"
+                    >
+                        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" width="20" className="me-2"/>
+                        Iniciar sesión con Google
+                    </button>
+                </div>
                 <div className="text-center mt-3">
                   <Link href="/" className="text-decoration-none">
                     ← Volver al inicio
@@ -100,6 +117,7 @@ export default function LoginPage() {
                     Contraseña: admin123
                   </small>
                 </div>
+                
               </div>
             </div>
           </div>

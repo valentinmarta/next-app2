@@ -1,11 +1,26 @@
-import { mockPizzaService } from "@/lib/mock-services"
-import { PizzaMenu } from "@/components/PizzaMenu"
-import { ReservationModal } from "@/components/ReservationModal"
-import Link from "next/link"
+// app/page.tsx
 
-export default function HomePage() {
-  // Get pizzas from mock service (server-side)
-  const pizzas = mockPizzaService.getPizzas()
+// 1. Importamos Prisma para acceder a la base de datos y Link para la navegación
+import prisma from "@/lib/prisma";
+import Link from "next/link";
+// 2. Ya no importamos el servicio de prueba, sino el componente real
+import { PizzaMenu } from "@/components/PizzaMenu";
+import { ReservationModal } from "@/components/ReservationModal";
+
+// 3. Convertimos la función en 'async' para poder usar 'await'
+export default async function HomePage() {
+  
+  // 4. Reemplazamos el mock service por una llamada real a la base de datos
+  const products = await prisma.product.findMany({
+    where: {
+      stock: {
+        gt: 0, // Opcional: solo mostramos productos con stock > 0
+      },
+    },
+    orderBy: {
+      name: 'asc', // Ordenamos los productos alfabéticamente
+    }
+  });
 
   return (
     <div className="min-vh-100 bg-light">
@@ -19,7 +34,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section (sigue igual) */}
       <div className="bg-danger text-white py-5">
         <div className="container text-center">
           <h1 className="display-4 fw-bold mb-3">Las Mejores Pizzas de la Ciudad</h1>
@@ -32,7 +47,8 @@ export default function HomePage() {
         <div className="row">
           <div className="col-lg-8">
             <h2 className="mb-4">Nuestro Menú</h2>
-            <PizzaMenu pizzas={pizzas} />
+            {/* 5. Pasamos los productos reales de la DB al componente PizzaMenu */}
+            <PizzaMenu products={products} />
           </div>
           <div className="col-lg-4">
             <div className="card shadow-sm">
@@ -48,7 +64,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      <ReservationModal pizzas={pizzas} />
+      {/* El ReservationModal sigue aquí, pero ahora también debería usar los 'products' reales */}
+      <ReservationModal pizzas={products} />
     </div>
-  )
+  );
 }

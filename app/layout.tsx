@@ -1,31 +1,39 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+// app/layout.tsx
 
-const inter = Inter({ subsets: ["latin"] })
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import "bootstrap/dist/css/bootstrap.min.css"; // El CSS está bien aquí
+import Providers from "@/components/Providers";
+import Script from "next/script"; // <-- IMPORTANTE: Importamos el componente Script
 
-export const metadata: Metadata = {
-  title: "Pizzería - Las Mejores Pizzas",
-  description: "Reserva tu pizza favorita en nuestra pizzería",
-    generator: 'v0.dev'
-}
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata = {
+  title: "Pizzeria App",
+  description: "La mejor pizzería de la ciudad",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="es">
-      <head>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" async />
-      </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Providers>
+          {children}
+        </Providers>
+        
+        {/* AÑADIMOS EL SCRIPT DE BOOTSTRAP AQUÍ, AL FINAL DEL BODY */}
+        {/* Esto asegura que toda la página se cargue antes de que el script se ejecute */}
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+          crossOrigin="anonymous"
+        />
+      </body>
     </html>
-  )
+  );
 }
-
-
-import './globals.css'

@@ -1,76 +1,97 @@
-"use client"
+// components/AdminHeader.tsx
+"use client";
 
-import { mockAuthService } from "@/config/auth"
-import { useRouter, usePathname } from "next/navigation"
-import Link from "next/link"
+import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { BoxArrowRight, PersonCircle } from "react-bootstrap-icons";
 
-interface AdminHeaderProps {
-  user: any
-}
+export function AdminHeader() {
+  const { data: session } = useSession();
+  const pathname = usePathname();
 
-export function AdminHeader({ user }: AdminHeaderProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-
-  const handleSignOut = () => {
-    mockAuthService.signOut()
-    router.push("/")
-  }
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-danger">
-      <div className="container">
+    <header className="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm sticky-top">
+      <div className="container-fluid">
         <Link href="/admin" className="navbar-brand">
           🍕 Admin Panel
         </Link>
-
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+        
+        {/* Botón Toggler para móvil. Apunta al ID 'navbarAdminContent' */}
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarAdminContent"
+          aria-controls="navbarAdminContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarAdmin">
-          <ul className="navbar-nav me-auto">
+        {/* Este es el contenedor que se colapsa. Su ID coincide con 'data-bs-target' */}
+        <div className="collapse navbar-collapse" id="navbarAdminContent">
+          {/* me-auto empuja esta lista a la izquierda */}
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link href="/admin" className={`nav-link ${pathname === "/admin" ? "active" : ""}`}>
-                <i className="bi bi-list-check me-1"></i>
-                Reservas
+              <Link
+                href="/admin"
+                className={`nav-link ${pathname === "/admin" ? "active" : ""}`}
+              >
+                Estadísticas
               </Link>
             </li>
             <li className="nav-item">
-              <Link href="/admin/menu" className={`nav-link ${pathname === "/admin/menu" ? "active" : ""}`}>
-                <i className="bi bi-pizza me-1"></i>
+              <Link
+                href="/admin/menu"
+                className={`nav-link ${pathname.startsWith("/admin/menu") ? "active" : ""}`}
+              >
                 Menú
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                href="/admin/reservations"
+                className="nav-link disabled"
+                aria-disabled="true"
+              >
+                Reservas
               </Link>
             </li>
           </ul>
 
-          <div className="navbar-nav ms-auto">
-            <div className="nav-item dropdown">
-              <button className="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i className="bi bi-person-circle me-1"></i>
-                {user?.name || "Admin"}
-              </button>
-              <ul className="dropdown-menu">
-                <li>
-                  <Link href="/" className="dropdown-item">
-                    <i className="bi bi-house me-2"></i>
-                    Ver Sitio Principal
-                  </Link>
-                </li>
-                <li>
-                  <hr className="dropdown-divider" />
-                </li>
-                <li>
-                  <button className="dropdown-item" onClick={handleSignOut}>
-                    <i className="bi bi-box-arrow-right me-2"></i>
-                    Cerrar Sesión
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
+          {/* Menú desplegable del usuario a la derecha */}
+          <ul className="navbar-nav">
+             {session?.user && (
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle text-white"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <PersonCircle className="me-1" />
+                  {session.user.name || "Admin"}
+                </a>
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <button className="dropdown-item" onClick={handleSignOut}>
+                      <BoxArrowRight className="me-2" />
+                      Cerrar Sesión
+                    </button>
+                  </li>
+                </ul>
+              </li>
+            )}
+          </ul>
         </div>
       </div>
-    </nav>
-  )
+    </header>
+  );
 }
